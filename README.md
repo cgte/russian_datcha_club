@@ -53,7 +53,7 @@ Once you checked it worked fine you can change the line (line 53 at time of writ
 - Some parameters are in the code instead of proper argparse, feel free to adapt.
     - `print` sends pdfs to printer
     - `quiet_mode` do not display firefox window
-    - `target_subfolder` for episodes (mostly for setup)
+    - `target_subfolder` for episodes (mostly for setup - you should NOT need to change it see copyright warning below)
 
 - I am NOT the owner of www.russianpodcast.eu
 
