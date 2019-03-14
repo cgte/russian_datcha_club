@@ -2,16 +2,19 @@
 
 This code automatically downloads podcasts from russianpodcast.eu to my computer, both mp3 and pdf (and print them)
 
-This way i get podacasts quickly and since i added te destination folder to my seafile (an opensource dropbox/google drive alternative) i get them on my phone so as to listen to them wherever i want.
+This way i get podacasts quickly and since i added the destination folder
+to my seafile (an opensource dropbox/google drive alternative)
+i get them on my phone so as to listen to them wherever i want.
 
 # Who is this for ?
 
-For now: mostly linux users with at least little python experience.
+For now: people with at least little python experience.
 If you have experience on Windows and Python feel free to help.
+
 
 # How to install ?
 
-The code is in Python2
+I assume you have python2 and virtualenv installed.
 
 You need `firefox webdriver` installed, the sofitware will check it can use it.
 the on shell:
@@ -51,6 +54,3 @@ Once you checked it worked fine you can change the line (line 53 at time of writ
     - `target_subfolder` for episodes (mostly for setup)
 
 
-# Notes
-
-If you are on windows you may be able to use the script in it's virtualenv but
