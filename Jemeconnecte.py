@@ -75,7 +75,7 @@ class JeMeConnecte(unittest.TestCase):
 
         soup = BSoup(driver.page_source, 'html.parser')
         megatop =  soup.find_all(inference_balises)
-        import ipdb
+        self.driver.quit()
         print(len(megatop))
         to_fetch = []
         for m in megatop:
@@ -91,8 +91,9 @@ class JeMeConnecte(unittest.TestCase):
             print title
             print links
             print '---'
-        ipdb.set_trace()
-
+        print('Downloaded files')
+        for title in downloaded:
+            print(title)
 
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
