@@ -6,7 +6,7 @@ This way i get podacasts quickly and since i added te destination folder to my s
 
 # Who is this for ?
 
-For now: mostly linux users with little python experience.
+For now: mostly linux users with at least little python experience.
 If you have experience on Windows and Python feel free to help.
 
 # How to install ?
@@ -46,8 +46,9 @@ Once you checked it worked fine you can change the line (line 53 at time of writ
 - Printing is disabled by default for public code and to facilitate use for potential python windows people (command is typically a linux one). Change the code according to.
 
 - Some parameters are in the code instead of proper argparse, feel free to adapt.
-    - print
-    - headless_mode
+    - `print` sends pdfs to printer
+    - `quiet_mode` do not display firefox window
+    - `target_subfolder` for episodes (mostly for setup)
 
 
 # Notes
