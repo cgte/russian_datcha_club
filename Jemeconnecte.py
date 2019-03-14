@@ -43,13 +43,16 @@ def urls_title_from_tag(tag):
 
 from selenium.webdriver.firefox.options import Options
 
-options = Options()
-options.add_argument("--headless")
+headless = Options()
+headless.add_argument("--headless")
+
+print_pdfs_with_default_printer = False # Uses default printer on linux
+target_subfolder = 'klimova'
 
 class JeMeConnecte(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Firefox() # Comment this and uncomment other line to get headless mode
-        #self.driver = webdriver.Firefox(firefox_options=options)
+        #self.driver = webdriver.Firefox(firefox_options=headless)
         self.driver.implicitly_wait(30)
         self.base_url = "https://russianpodcast.eu"
         self.verificationErrors = []
@@ -117,4 +120,18 @@ class JeMeConnecte(unittest.TestCase):
         self.assertEqual([], self.verificationErrors)
 
 if __name__ == "__main__":
-    unittest.main()
+    try:
+        print "Checking firefox driver is here"
+        driver = webdriver.Firefox(firefox_options=headless)
+        driver.quit()
+    except Exception as E:
+        import logging
+        logging.exception(E)
+
+        print "Looks like firefox webdriver is not installed"
+        print "See https://github.com/mozilla/geckodriver/releases go to assets todownload"
+        print "https://stackoverflow.com/questions/42204897/how-to-setup-selenium-python-environment-for-firefox for more help"
+    else:
+        print "Yey firefox driver seems installed"
+        unittest.main()
+
