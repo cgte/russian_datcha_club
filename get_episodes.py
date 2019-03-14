@@ -48,11 +48,14 @@ headless.add_argument("--headless")
 
 print_pdfs_with_default_printer = False # Uses default printer on linux
 target_subfolder = 'klimova'
+quiet = False
 
-class JeMeConnecte(unittest.TestCase):
+class PodcastGetter(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Firefox() # Comment this and uncomment other line to get headless mode
-        #self.driver = webdriver.Firefox(firefox_options=headless)
+        if quiet:
+            self.driver = webdriver.Firefox(firefox_options=headless)
+        else:
+            self.driver = webdriver.Firefox()
         self.driver.implicitly_wait(30)
         self.base_url = "https://russianpodcast.eu"
         self.verificationErrors = []
