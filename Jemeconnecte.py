@@ -82,6 +82,13 @@ class JeMeConnecte(unittest.TestCase):
             res = urls_title_from_tag(m)
             to_fetch.append(res)
         import urllib2
+        import os
+        if not os.path.exists(target_subfolder):
+            os.makedirs(target_subfolder)
+        os.chdir(target_subfolder)
+        present_files = [f for f in os.listdir('.')
+                if os.path.isfile(f)]
+        downloaded = []
         for links, title in to_fetch:
             for link in links:
                 filename = link.split('/')[-1]
