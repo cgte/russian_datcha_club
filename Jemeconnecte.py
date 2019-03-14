@@ -92,9 +92,13 @@ class JeMeConnecte(unittest.TestCase):
         for links, title in to_fetch:
             for link in links:
                 filename = link.split('/')[-1]
-
-                with open(filename, 'wb') as f:
-                    f.write(urllib2.urlopen(link).read())
+                if filename not in present_files:
+                    with open(filename, 'wb') as f:
+                        f.write(urllib2.urlopen(link).read())
+                        downloaded.append(title)
+                    if filename.lower().endswith('pdf'):
+                        if print_pdfs_with_default_printer:
+                            print(os.system('lp %s' % filename))
             print title
             print links
             print '---'
