@@ -64,11 +64,7 @@ class PodcastGetter(unittest.TestCase):
     def test_je_me_connecte(self):
         driver = self.driver
         driver.get("https://russianpodcast.eu/russian-dacha-club")
-        driver.find_element_by_name("email").click()
-        driver.find_element_by_name("email").clear()
         driver.find_element_by_name("email").send_keys(emailaddress)
-        driver.find_element_by_name("password").click()
-        driver.find_element_by_name("password").clear()
         driver.find_element_by_name("password").send_keys(password)
         driver.find_element_by_name("LoginDAPLoginForm").click()
         from time import sleep
