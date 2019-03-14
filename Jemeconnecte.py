@@ -51,13 +51,13 @@ class JeMeConnecte(unittest.TestCase):
         self.driver = webdriver.Firefox() # Comment this and uncomment other line to get headless mode
         #self.driver = webdriver.Firefox(firefox_options=options)
         self.driver.implicitly_wait(30)
-        self.base_url = "https://russianpodcast.eu/"
+        self.base_url = "https://russianpodcast.eu"
         self.verificationErrors = []
         self.accept_next_alert = False
 
     def test_je_me_connecte(self):
         driver = self.driver
-        driver.get("https://russianpodcast.eu/russian-dacha-club/")
+        driver.get("https://russianpodcast.eu/russian-dacha-club")
         driver.find_element_by_name("email").click()
         driver.find_element_by_name("email").clear()
         driver.find_element_by_name("email").send_keys(emailaddress)
