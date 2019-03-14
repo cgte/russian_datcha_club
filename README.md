@@ -58,3 +58,5 @@ Once you checked it worked fine you can change the line (line 53 at time of writ
 - I am NOT the owner of www.russianpodcast.eu
 
 - Yes datcha is on purpose, i live in France and got a friend named Daria ;)
+
+- The content (podcasts) you will download is copyrighted, be careful not to add it in git and push it to any public location.
