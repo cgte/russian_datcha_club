@@ -41,9 +41,15 @@ def urls_title_from_tag(tag):
         print tag.prettify()
     return refs, title
 
+from selenium.webdriver.firefox.options import Options
+
+options = Options()
+options.add_argument("--headless")
+
 class JeMeConnecte(unittest.TestCase):
     def setUp(self):
-        self.driver = webdriver.Firefox()
+        self.driver = webdriver.Firefox() # Comment this and uncomment other line to get headless mode
+        #self.driver = webdriver.Firefox(firefox_options=options)
         self.driver.implicitly_wait(30)
         self.base_url = "https://russianpodcast.eu/"
         self.verificationErrors = []
