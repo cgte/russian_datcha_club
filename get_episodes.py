@@ -50,15 +50,19 @@ print_pdfs_with_default_printer = False # Uses default printer on linux
 target_subfolder = 'klimova'
 quiet = True
 
-class PodcastGetter(unittest.TestCase):
+class PodcastGetter(object):
+    def __init__(self, driver):
+        self.driver = driver
+
+    def __call__(self):
+        self.setUp()
+        self.test_je_me_connecte()
+        self.tearDown()
+
+
     def setUp(self):
-        if quiet:
-            self.driver = webdriver.Firefox(firefox_options=headless)
-        else:
-            self.driver = webdriver.Firefox()
         self.driver.implicitly_wait(30)
         self.base_url = "https://russianpodcast.eu"
-        self.verificationErrors = []
         self.accept_next_alert = False
 
     def test_je_me_connecte(self):
@@ -106,36 +110,16 @@ class PodcastGetter(unittest.TestCase):
         for title in downloaded:
             print(title)
 
-    def is_element_present(self, how, what):
-        try: self.driver.find_element(by=how, value=what)
-        except NoSuchElementException as e: return False
-        return True
-
-    def is_alert_present(self):
-        try: self.driver.switch_to_alert()
-        except NoAlertPresentException as e: return False
-        return True
-
-    def close_alert_and_get_its_text(self):
-        try:
-            alert = self.driver.switch_to_alert()
-            alert_text = alert.text
-            if self.accept_next_alert:
-                alert.accept()
-            else:
-                alert.dismiss()
-            return alert_text
-        finally: self.accept_next_alert = True
-
     def tearDown(self):
         self.driver.quit()
-        self.assertEqual([], self.verificationErrors)
 
 if __name__ == "__main__":
     try:
         print "Checking firefox driver is here"
-        driver = webdriver.Firefox(firefox_options=headless)
-        driver.quit()
+        if quiet:
+            driver = webdriver.Firefox(firefox_options=headless)
+        else:
+            driver = webdriver.Firefox()
     except Exception as E:
         import logging
         logging.exception(E)
@@ -145,5 +129,5 @@ if __name__ == "__main__":
         print "https://stackoverflow.com/questions/42204897/how-to-setup-selenium-python-environment-for-firefox for more help"
     else:
         print "Yey firefox driver seems installed"
-        unittest.main()
+        PodcastGetter(driver)()
 
