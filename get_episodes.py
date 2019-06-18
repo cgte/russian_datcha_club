@@ -12,7 +12,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 import unittest, time, re
 
-from .credentials import emailaddress, password
+from credentials import emailaddress, password
 from bs4 import BeautifulSoup as BSoup
 
 
