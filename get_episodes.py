@@ -46,7 +46,7 @@ from selenium.webdriver.firefox.options import Options
 headless = Options()
 headless.add_argument("--headless")
 
-print_pdfs_with_default_printer = True # Uses default printer on linux
+print_pdfs_with_default_printer = False # Uses default printer on linux
 target_subfolder = 'klimova'
 quiet = True
 
