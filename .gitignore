@@ -2,4 +2,4 @@ credentials.py
 venv/
 testenv/
 klimova/
-
+*.sw*
