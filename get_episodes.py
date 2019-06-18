@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+from time import sleep
+import urllib2
+import os
+from pprint import pprint
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -48,93 +53,96 @@ headless.add_argument("--headless")
 
 print_pdfs_with_default_printer = False # Uses default printer on linux
 target_subfolder = 'klimova'
-quiet = False
+quiet = True
 
-class PodcastGetter(unittest.TestCase):
-    def setUp(self):
-        if quiet:
-            self.driver = webdriver.Firefox(firefox_options=headless)
-        else:
-            self.driver = webdriver.Firefox()
-        self.driver.implicitly_wait(30)
-        self.base_url = "https://russianpodcast.eu"
-        self.verificationErrors = []
-        self.accept_next_alert = False
 
-    def test_je_me_connecte(self):
+
+
+
+class PodcastGetter(object):
+    def __init__(self, driver):
+        self.driver = driver
+        self.driver.implicitly_wait(20)
+
+        if not os.path.exists(target_subfolder):
+            os.makedirs(target_subfolder)
+        os.chdir(target_subfolder)  # Use proper context manager instead
+        self.present_files = [f for f in os.listdir('.')  if os.path.isfile(f)]
+        print 'init done'
+
+    def log_in(self):
+        print 'logging in ',
+        import sys; sys.stdout.flush()
         driver = self.driver
         driver.get("https://russianpodcast.eu/russian-dacha-club")
         driver.find_element_by_name("email").send_keys(emailaddress)
         driver.find_element_by_name("password").send_keys(password)
         driver.find_element_by_name("LoginDAPLoginForm").click()
-        from time import sleep
-        sleep(2)
+        print 'logged in'
+
+    def refreshed_page_source(self, delay=2):
+        """ This is a heck because getting the content right after login
+        gives you le login page content """
+        driver = self.driver
+
+        sleep(delay)
         driver.refresh() # The url is the same so you need to re-fetch the content
-        klass = 'wpb_text_column wpb_content_element '
+        print 'refresed'
+        sleep(0.5)
+        source = driver.page_source
+        return source
 
-        soup = BSoup(driver.page_source, 'html.parser')
-        megatop =  soup.find_all(inference_balises)
+    def __call__(self):
+        self.log_in()
+        page_source = self.refreshed_page_source()
+        print 'got source'
         self.driver.quit()
-        print(len(megatop))
-        to_fetch = []
-        for m in megatop:
-            res = urls_title_from_tag(m)
-            to_fetch.append(res)
-        import urllib2
-        import os
-        if not os.path.exists(target_subfolder):
-            os.makedirs(target_subfolder)
-        os.chdir(target_subfolder)
-        present_files = [f for f in os.listdir('.')
-                if os.path.isfile(f)]
-        downloaded = []
-        for links, title in to_fetch:
-            for link in links:
-                filename = link.split('/')[-1]
-                if filename not in present_files:
-                    with open(filename, 'wb') as f:
-                        f.write(urllib2.urlopen(link).read())
-                        downloaded.append(title)
-                    if filename.lower().endswith('pdf'):
-                        if print_pdfs_with_default_printer:
-                            print(os.system('lp %s' % filename))
-            print title
-            print links
-            print '---'
-        print('Downloaded files')
-        for title in downloaded:
-            print(title)
+        print 'quitted driver'
+        links_filenames = self.get_links_and_titles(
+            source=page_source,
+            finder_function=inference_balises
+            )
+        files_to_get = self.filter_files(links_filenames)
+        self.process_files(files_to_get)
 
-    def is_element_present(self, how, what):
-        try: self.driver.find_element(by=how, value=what)
-        except NoSuchElementException as e: return False
-        return True
 
-    def is_alert_present(self):
-        try: self.driver.switch_to_alert()
-        except NoAlertPresentException as e: return False
-        return True
 
-    def close_alert_and_get_its_text(self):
-        try:
-            alert = self.driver.switch_to_alert()
-            alert_text = alert.text
-            if self.accept_next_alert:
-                alert.accept()
-            else:
-                alert.dismiss()
-            return alert_text
-        finally: self.accept_next_alert = True
+    @staticmethod
+    def get_links_and_titles(source, finder_function):
+        soup = BSoup(source, 'html.parser')
+        items = soup.find_all(finder_function)
+        return [urls_title_from_tag(m) for m in items]
 
-    def tearDown(self):
-        self.driver.quit()
-        self.assertEqual([], self.verificationErrors)
+
+    def filter_files(self, links_and_title):
+        def filename(link):
+            return link.split('/')[-1]
+        def is_there(link_title):
+            return filename(link_title) in self.present_files
+
+        return [(link, filename(link), title)
+                for links, title in links_and_title
+                for link in links
+                if not is_there(link)]
+
+
+    def process_files(self, files_to_get):
+        for link, filename, title in files_to_get:
+            print 'processing:\n', '\n'.join([link, filename, title])
+            with open(filename, 'wb') as f:
+                f.write(urllib2.urlopen(link).read())
+                if filename.lower().endswith('pdf') and \
+                        print_pdfs_with_default_printer:
+                    print(os.system('lp %s' % filename))
+
 
 if __name__ == "__main__":
     try:
         print "Checking firefox driver is here"
-        driver = webdriver.Firefox(firefox_options=headless)
-        driver.quit()
+        if quiet:
+            driver = webdriver.Firefox(firefox_options=headless)
+        else:
+            driver = webdriver.Firefox()
     except Exception as E:
         import logging
         logging.exception(E)
@@ -144,5 +152,5 @@ if __name__ == "__main__":
         print "https://stackoverflow.com/questions/42204897/how-to-setup-selenium-python-environment-for-firefox for more help"
     else:
         print "Yey firefox driver seems installed"
-        unittest.main()
+        PodcastGetter(driver)()
 
