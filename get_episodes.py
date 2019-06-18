@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from time import sleep
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import os
 from pprint import pprint
 
@@ -12,19 +12,19 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoAlertPresentException
 import unittest, time, re
 
-from credentials import emailaddress, password
+from .credentials import emailaddress, password
 from bs4 import BeautifulSoup as BSoup
 
 def inference_balises(tag):
     grandparent = tag.parent.parent
-    parent_class = [u'wpb_text_column', u'wpb_content_element', u'']
+    parent_class = ['wpb_text_column', 'wpb_content_element', '']
     cond = (
-        tag.has_attr('class') and tag['class'] == [u'wpb_wrapper']
+        tag.has_attr('class') and tag['class'] == ['wpb_wrapper']
         and
         tag.parent.has_attr('class')
             and tag.parent['class'] == parent_class
         and grandparent.has_attr('class')
-            and grandparent['class'] == [u'wpb_wrapper']
+            and grandparent['class'] == ['wpb_wrapper']
             )
     if not cond: return False
 
@@ -39,11 +39,11 @@ def urls_title_from_tag(tag):
     for atag in atags:
         if atag['href'].lower().endswith('mp3'):
             title = atag.text
-            print 'Parsing ok', title
+            print('Parsing ok', title)
             break
     else:
-        print 'Parse issue for'
-        print tag.prettify()
+        print('Parse issue for')
+        print(tag.prettify())
     return refs, title
 
 from selenium.webdriver.firefox.options import Options
@@ -68,17 +68,17 @@ class PodcastGetter(object):
             os.makedirs(target_subfolder)
         os.chdir(target_subfolder)  # Use proper context manager instead
         self.present_files = [f for f in os.listdir('.')  if os.path.isfile(f)]
-        print 'init done'
+        print('init done')
 
     def log_in(self):
-        print 'logging in ',
+        print('logging in ', end=' ')
         import sys; sys.stdout.flush()
         driver = self.driver
         driver.get("https://russianpodcast.eu/russian-dacha-club")
         driver.find_element_by_name("email").send_keys(emailaddress)
         driver.find_element_by_name("password").send_keys(password)
         driver.find_element_by_name("LoginDAPLoginForm").click()
-        print 'logged in'
+        print('logged in')
 
     def refreshed_page_source(self, delay=2):
         """ This is a heck because getting the content right after login
@@ -87,7 +87,7 @@ class PodcastGetter(object):
 
         sleep(delay)
         driver.refresh() # The url is the same so you need to re-fetch the content
-        print 'refresed'
+        print('refresed')
         sleep(0.5)
         source = driver.page_source
         return source
@@ -95,9 +95,9 @@ class PodcastGetter(object):
     def __call__(self):
         self.log_in()
         page_source = self.refreshed_page_source()
-        print 'got source'
+        print('got source')
         self.driver.quit()
-        print 'quitted driver'
+        print('quitted driver')
         links_filenames = self.get_links_and_titles(
             source=page_source,
             finder_function=inference_balises
@@ -128,17 +128,17 @@ class PodcastGetter(object):
 
     def process_files(self, files_to_get):
         for link, filename, title in files_to_get:
-            print 'processing:\n', '\n'.join([link, filename, title])
+            print('processing:\n', '\n'.join([link, filename, title]))
             with open(filename, 'wb') as f:
-                f.write(urllib2.urlopen(link).read())
+                f.write(urllib.request.urlopen(link).read())
                 if filename.lower().endswith('pdf') and \
                         print_pdfs_with_default_printer:
-                    print(os.system('lp %s' % filename))
+                    print((os.system('lp %s' % filename)))
 
 
 if __name__ == "__main__":
     try:
-        print "Checking firefox driver is here"
+        print("Checking firefox driver is here")
         if quiet:
             driver = webdriver.Firefox(firefox_options=headless)
         else:
@@ -147,10 +147,10 @@ if __name__ == "__main__":
         import logging
         logging.exception(E)
 
-        print "Looks like firefox webdriver is not installed"
-        print "See https://github.com/mozilla/geckodriver/releases go to assets todownload"
-        print "https://stackoverflow.com/questions/42204897/how-to-setup-selenium-python-environment-for-firefox for more help"
+        print("Looks like firefox webdriver is not installed")
+        print("See https://github.com/mozilla/geckodriver/releases go to assets todownload")
+        print("https://stackoverflow.com/questions/42204897/how-to-setup-selenium-python-environment-for-firefox for more help")
     else:
-        print "Yey firefox driver seems installed"
+        print("Yey firefox driver seems installed")
         PodcastGetter(driver)()
 
