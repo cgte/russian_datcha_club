@@ -46,9 +46,9 @@ from selenium.webdriver.firefox.options import Options
 headless = Options()
 headless.add_argument("--headless")
 
-print_pdfs_with_default_printer = False # Uses default printer on linux
+print_pdfs_with_default_printer = True # Uses default printer on linux
 target_subfolder = 'klimova'
-quiet = False
+quiet = True
 
 class PodcastGetter(unittest.TestCase):
     def setUp(self):
@@ -87,6 +87,8 @@ class PodcastGetter(unittest.TestCase):
         os.chdir(target_subfolder)
         present_files = [f for f in os.listdir('.')
                 if os.path.isfile(f)]
+        from pprint import pprint
+
         downloaded = []
         for links, title in to_fetch:
             for link in links:
@@ -98,9 +100,8 @@ class PodcastGetter(unittest.TestCase):
                     if filename.lower().endswith('pdf'):
                         if print_pdfs_with_default_printer:
                             print(os.system('lp %s' % filename))
-            print title
-            print links
-            print '---'
+                else:
+                    print(filename + ' already here')
         print('Downloaded files')
         for title in downloaded:
             print(title)
