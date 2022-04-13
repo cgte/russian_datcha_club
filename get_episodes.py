@@ -5,6 +5,9 @@ import os
 from pprint import pprint
 
 from selenium import webdriver
+
+from selenium.webdriver.firefox.options import Options
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select
@@ -53,7 +56,9 @@ def urls_title_from_tag(tag):
 from selenium.webdriver.firefox.options import Options
 
 headless = Options()
-headless.add_argument("--headless")
+debug = True
+if debug:
+    headless.headless = False
 
 print_pdfs_with_default_printer = False  # Uses default printer on linux
 target_subfolder = "klimova"
@@ -84,8 +89,8 @@ class PodcastGetter(object):
         print("logged in")
 
     def refreshed_page_source(self, delay=2):
-        """ This is a heck because getting the content right after login
-        gives you le login page content """
+        """This is a heck because getting the content right after login
+        gives you le login page content"""
         driver = self.driver
 
         sleep(delay)
@@ -140,7 +145,7 @@ if __name__ == "__main__":
     try:
         print("Checking firefox driver is here")
         if quiet:
-            driver = webdriver.Firefox(firefox_options=headless)
+            driver = webdriver.Firefox(options=headless)
         else:
             driver = webdriver.Firefox()
     except Exception as E:
