@@ -16,3 +16,8 @@ run:
 
 poetry:
 	@echo $(poetry_exe)
+
+
+build: host_install install
+
+check: build run
