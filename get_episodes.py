@@ -2,7 +2,8 @@
 from time import sleep
 import urllib.request, urllib.error, urllib.parse
 import os
-from pprint import pprint
+from pprint import pprint, pformat
+import logging
 
 from selenium import webdriver
 
@@ -17,6 +18,14 @@ import unittest, time, re
 
 from credentials import emailaddress, password
 from bs4 import BeautifulSoup as BSoup
+
+logging.basicConfig(
+    format="%(asctime)s %(name)s  %(levelname)s  %(funcName)s %(lineno)d %(message)s",
+    datefmt="%m/%d/%Y %I:%M:%S",
+    level=logging.INFO,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def inference_balises(tag):
@@ -100,45 +109,75 @@ class PodcastGetter(object):
         source = driver.page_source
         return source
 
+    def get_main_post(self):
+
+        return self.driver.find_element(By.CSS_SELECTOR, "section.post-content")
+
+    def get_podacast_page_links_tags(self, main_post):
+        return main_post.find_elements(
+            By.CSS_SELECTOR, "div.wpb_text_column > div.wpb_wrapper > p>a"
+        )
+
     def __call__(self):
         self.log_in()
         page_source = self.refreshed_page_source()
-        print("got source")
-        self.driver.quit()
-        print("quitted driver")
-        links_filenames = self.get_links_and_titles(
-            source=page_source, finder_function=inference_balises
-        )
-        files_to_get = self.filter_files(links_filenames)
+        logger.info("got source")
+        # self.wait(By.CSS_SELECTOR, 'section.post-content')
+        main_post = self.get_main_post()
+
+        page_links_tags = self.get_podacast_page_links_tags(main_post)
+        urls = [tag.get_attribute("href") for tag in page_links_tags]
+        logger.info(f"{len(urls)} tags found")
+
+        # links_filenames = self.get_links_and_titles(finder_function=inference_balises)
+        podcast_list = []
+        for url in urls:  # go to page and fetch the postcast
+            targets_podcat = "podcast" in url
+            self.driver.get(url)
+            link = self.driver.find_element(By.CSS_SELECTOR, "div.wpb_wrapper .fa")
+            # [x.text for x in self.driver.find_elements(By.CSS_SELECTOR, "div.wpb_wrapper .fa+a").find_element(By.XPATH, '../').find_element(By.TAG, 'a')
+            # https://developer.mozilla.org/fr/docs/Web/CSS/Adjacent_sibling_combinator
+            link_tags = self.driver.find_elements(
+                By.CSS_SELECTOR, "div.wpb_wrapper .fa+a"
+            )
+            logger.info(f"{len(link_tags)} found, expected 2")
+
+            def parse_desc(s):
+                stripped = s.split(">>")[-1].strip("' ").replace(" ", "_")
+                return stripped
+
+            for tag in link_tags:
+                url = tag.get_attribute("href")
+                title = parse_desc(tag.text)
+
+                podcast_list.append((url, title))
+                logger.info(f"Found {title} {url}")
+
+        files_to_get = self.filter_files(podcast_list)
+        logger.info(pformat(files_to_get))
         self.process_files(files_to_get)
 
-    @staticmethod
-    def get_links_and_titles(source, finder_function):
-        soup = BSoup(source, "html.parser")
-        items = soup.find_all(finder_function)
-        return [urls_title_from_tag(m) for m in items]
+        self.driver.quit()
 
     def filter_files(self, links_and_title):
-        def filename(link):
-            return link.split("/")[-1]
-
-        def is_there(link_title):
-            return filename(link_title) in self.present_files
+        def is_there(title):
+            return title in self.present_files
 
         return [
-            (link, filename(link), title)
-            for links, title in links_and_title
-            for link in links
-            if not is_there(link)
+            (link, title, title)
+            for link, title in links_and_title
+            if not is_there(title)
         ]
 
     def process_files(self, files_to_get):
+        if not files_to_get:
+            logger.info("Nohing to download")
         for link, filename, title in files_to_get:
-            print("processing:\n", "\n".join([link, filename, title]))
+            print(f"processing: {title}")
             with open(filename, "wb") as f:
                 f.write(urllib.request.urlopen(link).read())
-                if filename.lower().endswith("pdf") and print_pdfs_with_default_printer:
-                    print((os.system("lp %s" % filename)))
+                # if filename.lower().endswith("pdf") and print_pdfs_with_default_printer:
+                #    print((os.system("lp %s" % filename)))
 
 
 if __name__ == "__main__":
@@ -162,4 +201,9 @@ if __name__ == "__main__":
         )
     else:
         print("Yey firefox driver seems installed")
-        PodcastGetter(driver)()
+        fetcher = PodcastGetter(driver)
+        try:
+            fetcher()
+        except Exception:
+            fetcher.driver.quit()
+            raise
