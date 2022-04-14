@@ -3,6 +3,7 @@ from time import sleep
 import urllib.request, urllib.error, urllib.parse
 import os
 from pprint import pprint
+import logging
 
 from selenium import webdriver
 
@@ -17,6 +18,14 @@ import unittest, time, re
 
 from credentials import emailaddress, password
 from bs4 import BeautifulSoup as BSoup
+
+logging.basicConfig(
+    format="%(asctime)s %(name)s  %(levelname)s  %(funcName)s %(lineno)d %(message)s",
+    datefmt="%m/%d/%Y %I:%M:%S",
+    level=logging.INFO,
+)
+
+logger = logging.getLogger(__name__)
 
 
 def inference_balises(tag):
@@ -162,4 +171,8 @@ if __name__ == "__main__":
         )
     else:
         print("Yey firefox driver seems installed")
-        PodcastGetter(driver)()
+        fetcher = PodcastGetter(driver)
+        try:
+            fetcher()
+        except Exception:
+            fetcher.driver.quit()
